@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <style>
+      body { font-family: Arial, sans-serif; font-size: 14px; padding: 10px; }
+      label { display: block; margin-top: 10px; }
+      input[type="text"], input[type="date"] {
+        width: 100%;
+        padding: 6px;
+        box-sizing: border-box;
+      }
+      button {
+        margin-top: 20px;
+        padding: 8px 16px;
+      }
+      #progress-container {
+        margin-top: 20px;
+        display: none;
+      }
+      #progress-bar {
+        width: 100%;
+        background: #eee;
+        border-radius: 5px;
+        overflow: hidden;
+      }
+      #progress-fill {
+        width: 0%;
+        height: 20px;
+        background: #4caf50;
+        transition: width 0.2s;
+      }
+    </style>
+  </head>
+  <body>
+    <form id="docForm">
+      <label for="numberOfDocs">How many weeks of documents do you want to create?</label>
+      <input type="number" id="numberOfDocs" name="numberOfDocs" required min="1" style="max-width: 100px;">
+
+      <label for="startingDate">Starting Date</label>
+      <input type="date" id="startingDate" name="startingDate" required>
+
+      <label><input type="checkbox" name="aud1"> Hwy 14 – Auditorium One</label>
+      <label><input type="checkbox" name="aud2"> Hwy 14 – Auditorium Two</label>
+      <label><input type="checkbox" name="adamsMill"> Adams Mill – Auditorium</label>
+
+      <button type="submit">Create Documents</button>
+    </form>
+
+    <div id="progress-container">
+      <div id="progress-bar">
+        <div id="progress-fill"></div>
+      </div>
+      <p id="progress-status">Preparing...</p>
+    </div>
+
+    <script>
+      document.getElementById('docForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const form = e.target;
+        const formData = Object.fromEntries(new FormData(form).entries());
+
+        ['aud1', 'aud2', 'adamsMill'].forEach(key => {
+          formData[key] = form[key]?.checked || false;
+        });
+
+        const numberOfDocs = parseInt(formData.numberOfDocs);
+        const startDate = new Date(formData.startingDate);
+        const tasks = [];
+
+        for (let i = 0; i < numberOfDocs; i++) {
+          const loopDate = new Date(startDate.getTime() + i * 7 * 24 * 60 * 60 * 1000);
+          const docDate = loopDate.toISOString().split('T')[0];
+          
+          if (formData.aud1) tasks.push({ short: 'Aud 1', full: 'Hwy 14 - Auditorium One', date: docDate });
+          if (formData.aud2) tasks.push({ short: 'Aud 2', full: 'Hwy 14 - Auditorium Two', date: docDate });
+          if (formData.adamsMill) tasks.push({ short: 'Adams Mill', full: 'Adams Mill - Auditorium', date: docDate });
+        }
+
+        document.getElementById('docForm').style.display = 'none';
+        document.getElementById('progress-container').style.display = 'block';
+
+        let current = 0;
+        const total = tasks.length;
+
+        function createNext() {
+          if (current >= total) {
+            document.getElementById('progress-fill').style.width = '100%';
+            document.getElementById('progress-status').innerText = '✅ Documents created!';
+            setTimeout(() => google.script.host.close(), 2000);
+            return;
+          }
+
+          const task = tasks[current];
+          google.script.run
+            .withSuccessHandler(() => {
+              current++;
+              const percent = Math.floor((current / total) * 100);
+              document.getElementById('progress-fill').style.width = percent + '%';
+              document.getElementById('progress-status').innerText = `Creating ${current} of ${total} documents...`;
+              createNext();
+            })
+            .withFailureHandler(err => {
+              document.getElementById('progress-status').innerText = '❌ Error: ' + err.message;
+            })
+            .createSingleDocument(task);
+        }
+
+        createNext();
+      });
+    </script>
+  </body>
+</html>
