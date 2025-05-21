@@ -17,7 +17,7 @@ This Google Apps Script creates weekly talking points documents for multiple ven
 3. Delete any placeholder code and **paste in the contents of `code.gs`**.
 4. Modify the code to specify the correct document id for the template.
 5. In the Apps Script sidebar, click the `+` icon next to "Files" and choose **HTML > dialog.html**.
-6. Paste in the contents of `dialog.html`.
+6. Paste in the contents of `MainDialog.html`.
 7. Save your script project.
 8. Reload the Google Doc. The dialog should appear.
 
@@ -26,7 +26,7 @@ This Google Apps Script creates weekly talking points documents for multiple ven
 ## Files
 
 - `code.gs` – Main script logic (handles document creation, UI, and date logic)
-- `dialog.html` – Custom HTML dialog for user input and progress display
+- `MainDialog.html` – Custom HTML dialog for user input and progress display
 
 ## Example Use Case
 
